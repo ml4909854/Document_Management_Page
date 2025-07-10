@@ -3,7 +3,6 @@ const User = require("../model/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const router = express.Router();
-const nodemailer = require("nodemailer");
 const sendEmail = require("../utils/sendEmail");
 
 // register route
@@ -54,11 +53,11 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { _id: user._id, role: user.role },
       process.env.SECRET_KEY,
-      { expiresIn: "1d" }
+      { expiresIn: "5d" }
     );
 
     res.status(200).json({
-      message: `${user.name} login successfull`,
+      message: `${user.name} logged successfully`,
       token,
       userId: user._id,
     });
@@ -69,41 +68,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// // forgot password route
-// router.post("/forgot-password", async (req, res) => {
-//   try {
-//     const { email, newPassword, confirmPassword } = req.body;
 
-//     // check user
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found!" });
-//     }
-
-//     if (newPassword.toString() !== confirmPassword.toString()) {
-//       return res
-//         .status(400)
-//         .json({ message: "newPassword and confirmpassword are not match!" });
-//     }
-
-//     // hash newPassword
-//     const SALTROUND = parseInt(process.env.SALTROUND);
-//     const hashedPassword = await bcrypt.hash(newPassword, SALTROUND);
-
-//     // update the user password
-//     user.password = hashedPassword;
-//     await user.save();
-//     res
-//       .status(201)
-//       .json({ message: "password forgot successfully!", user: user });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ message: "error forgotting password", error: error.message });
-//   }
-// });
-
-// forgot-password
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
@@ -119,7 +84,7 @@ router.post("/forgot-password", async (req, res) => {
     );
 
     // now we have to sent the email to the particular url.
-    const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
     await sendEmail(
       email,
       "Password Reset Link",
@@ -164,5 +129,6 @@ router.post("/reset-password", async (req, res) => {
     res.status(500).json({message:"error to reset password" , error:error.message})
   }
 });
+
 
 module.exports = router;
